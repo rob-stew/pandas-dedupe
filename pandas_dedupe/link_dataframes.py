@@ -2,10 +2,7 @@ from pandas_dedupe.utility_functions import *
 
 import os
 import logging
-
 import dedupe
-
-
 import pandas as pd
 
 
@@ -93,7 +90,7 @@ def link_dataframes(dfa, dfb, field_properties, config_name="link_dataframes", n
         # Save our weights and predicates to disk.  If the settings file
         # exists, we will skip all the training and learning next time we run
         # this file.
-        with open(settings_file, 'wb') as sf :
+        with open(settings_file, 'w') as sf :
             linker.write_settings(sf)
 
 
@@ -109,11 +106,24 @@ def link_dataframes(dfa, dfb, field_properties, config_name="link_dataframes", n
     # this function but a representative sample.
 
     print('Clustering...')
-    linked_records = linker.join(data_1, data_2, 0)
-
-    print('# duplicate sets', len(linked_records))
+    threshold = 0.0  # keep your previous default
+    pairs = linker.pairs(data_1, data_2)
+    scores = linker.score(pairs)
+    links = linker.one_to_one(scores, threshold=threshold)
     
+    rows = []
+    for idx, ((ida, idb), score) in enumerate(links, start=1):
+        rows.append({
+            "dfa_link": ida,
+            "dfb_link": idb,
+            "cluster id": idx,
+            "confidence": score,
+        })
+    df_linked_records = pd.DataFrame(rows)
+    
+    print('# duplicate sets', len(df_linked_records))
 
+    
     #Convert linked records into dataframe
     df_linked_records = pd.DataFrame(linked_records)
     
@@ -132,7 +142,7 @@ def link_dataframes(dfa, dfb, field_properties, config_name="link_dataframes", n
     dfb = dfb.merge(df_linked_records, on='dfb_link', how='left')
 
     #Concatenate results from dfa + dfb
-    df_final = dfa.append(dfb, ignore_index=True, sort=True)
+    df_final = pd.concat([dfa, dfb], ignore_index=True, sort=True)
     df_final = df_final.sort_values(by=['cluster id'])
     df_final = df_final.drop(columns=['dfa_link','dfb_link'])
 
