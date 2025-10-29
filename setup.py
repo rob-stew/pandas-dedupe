@@ -16,10 +16,18 @@ setup(name='pandas_dedupe',
       license='MIT',
       packages=['pandas_dedupe'],
       install_requires=[
-          'dedupe>=2.0.0',
+          'dedupe>=3.0.0',
           'unidecode',
           'pandas',
       ],
+      extras_require={
+        "plugins": [
+            "dedupe-variable-name>=0.1",
+            "dedupe-variable-address>=0.1",
+            "dedupe-variable-datetime>=0.1",
+            "dedupe-variable-number>=0.1",
+        ]
+      },
       zip_safe=False,
       
       #Enable pypi description
