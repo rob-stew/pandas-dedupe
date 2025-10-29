@@ -121,7 +121,7 @@ def _train(settings_file, training_file, clean_data, messy_data, field_propertie
 
         # Import existing model
         print('Reading labeled examples from ', training_file)
-        with open(training_file, 'rb') as f:
+        with open(training_file, 'r') as f:
             deduper.prepare_training(clean_data, messy_data, training_file=f)
 
         # Launch active learning
